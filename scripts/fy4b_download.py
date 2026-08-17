@@ -27,7 +27,7 @@ _DOWNLOADER_CWD = DOWNLOADER.parent
 
 
 # # GBK 字节码（从子进程 raw bytes 提取验证）
-# # 新下载 = d0c2cf c2d4d8
+# # 成功 = d0c2cf c2d4d8
 # # 已存在 = d2d1b4e6 d4da
 # # 未来   = ceb4c0b4
 # # 失败   = caa7b0dc
@@ -54,12 +54,12 @@ _DOWNLOADER_CWD = DOWNLOADER.parent
 
 
 def parse_output(raw: str):
-    """从脚本输出中解析下载统计四元组 (新下载, 已存在, 未来, 失败)。
+    """从脚本输出中解析下载统计四元组 (成功, 已存在, 未来, 失败)。
 
     脚本输出多批 [DONE] 行（当前批次 + 预下载下一批次），
     将所有批次数字累加得到最终汇总结果。
     """
-    pattern = r"\[DONE\]\s*新下载:\s*(\d+)\s*\|\s*已存在:\s*(\d+)\s*\|\s*未来:\s*(\d+)\s*\|\s*失败:\s*(\d+)"
+    pattern = r"\[DONE\]\s*失败:\s*(\d+)\s*\|\s*成功:\s*(\d+)\s*\|\s*已存在:\s*(\d+)\s*\|\s*未来:\s*(\d+)"
     all_matches = re.findall(pattern, raw)
     if not all_matches:
         return None, None
@@ -73,9 +73,9 @@ def parse_output(raw: str):
 
     return tuple(totals), fail_analysis  # ((new, skip_exist, skip_future, fail), fail_analysis_or_None)
 
-def build_message(new, skip_exist, skip_future, fail, exec_time, fail_analysis=None):
+def build_message(fail, new, skip_exist, skip_future, exec_time, fail_analysis=None):
     tmpl = _config["push_message_template"]
-    msg = tmpl.format(new=new, skip_exist=skip_exist, skip_future=skip_future, fail=fail, exec_time=exec_time)
+    msg = tmpl.format(fail=fail, new=new, skip_exist=skip_exist, skip_future=skip_future, exec_time=exec_time)
     # 失败分析放在 Markdown 引用块中
     if fail_analysis:
         lines = fail_analysis.split("\n")
@@ -110,7 +110,7 @@ def main():
         # safe_print(f"[!] 解析失败，原始输出末尾500字：\n{out[-500:]}")
         print(f"⚠️ 解析失败，原始输出末尾500字：\n{out[-500:]}")
         return
-    new, skip_exist, skip_future, fail = parsed
+    fail, new, skip_exist, skip_future = parsed
 
     # 输出 Markdown 报告（窗口可见）
     exec_time = subprocess.run(
@@ -118,12 +118,12 @@ def main():
         capture_output=True, text=True, encoding='utf-8'
     ).stdout.strip()
     # safe_print("[FY4B] FY4B 云图下载报告")
-    # safe_print(f"✅ 新下载: **{new}**")
+    # safe_print(f"✅ 成功: **{new}**")
     # safe_print(f"⏭️ 已存在: **{skip_exist}**")
     # safe_print(f"🔮 未就绪: **{skip_future}**")
     # safe_print(f"❌ 失败: **{fail}**")
     # safe_print(f"⏰ 执行时间：{exec_time}")
-    msg = build_message(new, skip_exist, skip_future, fail, exec_time, fail_analysis=fail_analysis)
+    msg = build_message(fail, new, skip_exist, skip_future, exec_time, fail_analysis=fail_analysis)
     print(msg)
 
 if __name__ == "__main__":

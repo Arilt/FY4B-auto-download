@@ -170,7 +170,7 @@ def download_links(links):
                     f.write(resp.read())
             success += 1
             if success % _DL_PROGRESS == 0 or i == total:
-                log(f"[PROGRESS] {i}/{total} | 新下载: {success} | 已存在: {skip_exist} | 未来: {skip_future} | 失败: {fail}")
+                log(f"[PROGRESS] {i}/{total} | 成功: {success} | 已存在: {skip_exist} | 未来: {skip_future} | 失败: {fail}")
         except Exception as e:
             fail += 1
             log(f"[FAIL] {filename}: {e}")
@@ -178,8 +178,8 @@ def download_links(links):
         if i % _DL_PQL_EVERY == 0:
             time.sleep(_DL_PQL_SEC)
 
-    log(f"[DONE] 新下载: {success} | 已存在: {skip_exist} | 未来: {skip_future} | 失败: {fail}")
-    return success, skip_exist + skip_future, fail
+    log(f"[DONE] 成功: {success} | 已存在: {skip_exist} | 未来: {skip_future} | 失败: {fail}")
+    return fail, success, skip_exist + skip_future
 
 
 # ===================== 主流程 =====================
@@ -246,8 +246,8 @@ def main():
         return False
 
     if links is not None:
-        ok, skip, fail = download_links(links)
-        log(f"[DONE] 当前批次 | 新下载: {ok} | 共跳过: {skip} | 失败: {fail}")
+        fail, ok, skip = download_links(links)
+        log(f"[DONE] 当前批次 | 成功: {ok} | 共跳过: {skip} | 失败: {fail}")
 
     # 5. 过期 → 更新 Excel/生成新 txt → 移动 → 删旧txt → 预下载下一批次
     if need_update:
@@ -282,8 +282,8 @@ def main():
 
         new_links = read_txt_links(new_txt_path)
         log(f"[DOWNLOAD] 下一批次: {new_txt_path.name} ({len(new_links)} 个链接)")
-        ok2, skip2, fail2 = download_links(new_links)
-        log(f"[DONE] 下一批次预下载 | 新下载: {ok2} | 共跳过: {skip2} | 失败: {fail2}")
+        fail2, ok2, skip2 = download_links(new_links)
+        log(f"[DONE] 下一批次预下载 | 成功: {ok2} | 共跳过: {skip2} | 失败: {fail2}")
 
     log("=" * 50)
     log("[OK] 任务完成")

@@ -3,12 +3,12 @@
 本项目提供了一套高度可配置的自动化工具，用于从中国国家气象中心（NMC）下载风云四号B星（FY4B）的云图数据。
 
 项目支持两种主要工作模式：
-1. **直接下载模式** ([fy4b_direct_download.py](./single-scripts/fy4b_direct_download.py))：使用 Python 内置库直接下载，支持临时目录缓存、自动移动文件和预下载下一批次。
-2. **IDM 导入模式** ([fy4b_idm_import.py](./single-scripts/fy4b_idm_import.py))：将链接导入 Internet Download Manager (IDM) 进行多线程加速下载，并自动管理链接有效期。
+1. **直接下载模式** ([fy4b_direct_download.py](./scripts/fy4b_direct_download.py))：使用 Python 内置库直接下载，支持临时目录缓存、自动移动文件和预下载下一批次。
+2. **IDM 导入模式** ([fy4b_idm_import.py](./scripts/fy4b_idm_import.py))：将链接导入 Internet Download Manager (IDM) 进行多线程加速下载，并自动管理链接有效期。
 
 此外，本项目已集成 **OpenClaw Skill**，支持通过定时任务（Cron）自动执行下载并推送报告至 QQ/微信。
 
-所有路径、参数和逻辑均通过 [skill_config.json](./scripts/skill_config.json) 或 [fy4b_config.json](./single-scripts/fy4b_config.json) 配置，无需修改 Python 源码即可适配不同环境。
+所有路径、参数和逻辑均通过 [skill_config.json](./scripts/skill_config.json) 或 [fy4b_config.json](./scripts/fy4b_config.json) 配置，无需修改 Python 源码即可适配不同环境。
 
 ## 📁 项目结构
 

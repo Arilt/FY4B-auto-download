@@ -99,10 +99,10 @@ python {skills_dir}\FY4B-auto-download\scripts\fy4b_download.py
 ```markdown
 📡 **FY4B 云图下载报告**
 
-- ✅ 新下载: **X**
+- ❌ 失败: **W**
+- ✅ 成功: **X**
 - ⏭️ 已存在: **Y**
 - 🔮 未来图片: **Z**
-- ❌ 失败: **W**
 
 ⏰ 执行时间：{exec_time}
 

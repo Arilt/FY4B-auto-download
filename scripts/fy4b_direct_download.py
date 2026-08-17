@@ -143,10 +143,10 @@ def move_staging_to_target():
 def download_links(links, batch_label=""):
     """批量下载到 STAGING_DIR，跳过已存在于 STAGING_DIR 或 TARGET_DIR 的文件及未来图片。
 
-    返回 (success, skip_exist, skip_future, fail, fail_details) 五元组。
+    返回 (fail, success, skip_exist, skip_future, fail_details) 五元组。
     fail_details 为失败原因分析字符串（空字符串表示无失败）。
     """
-    success = skip_exist = skip_future = fail = 0
+    fail = success = skip_exist = skip_future = 0
     fail_records = []  # 收集失败记录用于原因分析
     total = len(links)
 
@@ -175,7 +175,7 @@ def download_links(links, batch_label=""):
                     f.write(resp.read())
             success += 1
             if success % _DL_PROGRESS == 0 or i == total:
-                log(f"[PROGRESS] {i}/{total} | 新下载: {success} | 已存在: {skip_exist} | 未来: {skip_future} | 失败: {fail}")
+                log(f"[PROGRESS] {i}/{total} | 失败: {fail} | 成功: {success} | 已存在: {skip_exist} | 未来: {skip_future}")
         except Exception as e:
             fail += 1
             err_str = str(e)
@@ -190,8 +190,8 @@ def download_links(links, batch_label=""):
     # if fail_details:
     #     log(fail_details)
 
-    log(f"[DONE] 新下载: {success} | 已存在: {skip_exist} | 未来: {skip_future} | 失败: {fail}")
-    return success, skip_exist, skip_future, fail, fail_details
+    log(f"[DONE] 失败: {fail} | 成功: {success} | 已存在: {skip_exist} | 未来: {skip_future}")
+    return fail, success, skip_exist, skip_future, fail_details
 
 
 def _analyze_failures(fail_records, batch_label=""):
@@ -308,8 +308,8 @@ def main():
         return False
 
     if links is not None:
-        ok, skip_exist, skip_future, fail, fail_details = download_links(links, batch_label=txt_path.name if txt_path else "")
-        log(f"[DONE] 当前批次 | 新下载: {ok} | 已存在: {skip_exist} | 未来: {skip_future} | 失败: {fail}")
+        fail, ok, skip_exist, skip_future, fail_details = download_links(links, batch_label=txt_path.name if txt_path else "")
+        log(f"[DONE] 当前批次 | 失败: {fail} | 成功: {ok} | 已存在: {skip_exist} | 未来: {skip_future}")
         # 单批次路径也输出失败分析标记
         if fail_details:
             log(f"[FAIL_ANALYSIS]{fail_details}")
@@ -347,15 +347,15 @@ def main():
 
         new_links = read_txt_links(new_txt_path)
         log(f"[DOWNLOAD] 下一批次 → {new_txt_path.name} ({len(new_links)} 个链接)")
-        ok2, skip_exist2, skip_future2, fail2, fail_details2 = download_links(new_links, batch_label=new_txt_path.name)
-        log(f"[DONE] 下一批次预下载 | 新下载: {ok2} | 已存在: {skip_exist2} | 未来: {skip_future2} | 失败: {fail2}")
+        fail2, ok2, skip_exist2, skip_future2, fail_details2 = download_links(new_links, batch_label=new_txt_path.name)
+        log(f"[DONE] 下一批次预下载 | 失败: {fail2} | 成功: {ok2} | 已存在: {skip_exist2} | 未来: {skip_future2}")
 
         # # 汇总两批下载的总数，供入口脚本正则捕获
         # total_new = ok + ok2
         # total_skip_exist = skip_exist + skip_exist2
         # total_skip_future = skip_future + skip_future2
         # total_fail = fail + fail2
-        # log(f"[DONE] 汇总 | 新下载: {total_new} | 已存在: {total_skip_exist} | 未来: {total_skip_future} | 失败: {total_fail}")
+        # log(f"[DONE] 汇总 | 成功: {total_new} | 已存在: {total_skip_exist} | 未来: {total_skip_future} | 失败: {total_fail}")
         # 合并失败原因（用特殊标记 [FAIL_ANALYSIS] 供外层解析）
         all_fail_details = "\n".join(filter(None, [fail_details, fail_details2]))
         if all_fail_details:

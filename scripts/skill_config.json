@@ -57,7 +57,7 @@
     }
   ],
 
-  "push_message_template": "📡 **FY4B 云图下载报告**\n\n- ✅ 新下载: **{new}**\n- ⏭️ 已存在: **{skip_exist}**\n- 🔮 未来图片: **{skip_future}**\n- ❌ 失败: **{fail}**\n\n⏰ 执行时间：{exec_time}",
+  "push_message_template": "📡 **FY4B 云图下载报告**\n\n- ❌ 失败: **{fail}**\n- ✅ 成功: **{new}**\n- ⏭️ 已存在: **{skip_exist}**\n- 🔮 未来图片: **{skip_future}**\n\n⏰ 执行时间：{exec_time}",
 
   "cron_schedule": "30 9,15,21 * * *",
   "cron_timezone": "Asia/Shanghai"
