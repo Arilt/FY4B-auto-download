@@ -57,6 +57,11 @@ python {skills_dir}\FY4B-auto-download\scripts\fy4b_download.py
 
 > 💡 首次设置定时任务时：读取配置文件 {skills_dir}\FY4B-auto-download\scripts\skill_config.json，遍历 push_targets 数组，将每个推送目标的 channel/to/accountId 配置字段内嵌于 cron payload 中，以便之后的任务无需读取配置文件，减少一轮 LLM 响应以降低超时风险。
 
+> 💡 **QQ 直接推送备用方案**：若 QClaw cron 因积分耗尽无法推送，`fy4b_download.py` 会自动调用 `fy4b_push_qq.py` 直接通过 QQ 开放平台 API 推送。
+> - Token 获取：`POST https://api.bot.qq.com/app/getAppAccessToken`，body: `{"appId":"YOUR_APP_ID","clientSecret":"YOUR_APP_SECRET}"}`
+> - 推送接口：`POST https://api.bot.qq.com/v2/users/{user_openid}/messages`，Header: `Authorization: QQBot <token>`，body: `{"msg_type":0,"content":"<消息内容>"}`
+> - 当前 token 写入 `scripts/qqbot_token.txt`（有效期约 7200 秒，过期需刷新）
+
 ### 失败分析输出机制
 
 脚本会根据执行路径输出失败分析：

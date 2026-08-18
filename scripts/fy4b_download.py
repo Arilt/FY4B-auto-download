@@ -109,6 +109,15 @@ def main():
         # 输出末尾500字供调试
         # safe_print(f"[!] 解析失败，原始输出末尾500字：\n{out[-500:]}")
         print(f"⚠️ 解析失败，原始输出末尾500字：\n{out[-500:]}")
+        # 解析失败时也写入 last_output.txt，确保 fy4b_push_qq.py 能读取
+        try:
+            debug_file.write_text(
+                f"=== STDOUT ===\n{result.stdout}\n=== STDERR ===\n{result.stderr}\n"
+                f"=== PARSE_FAIL ===\n⚠️ 解析失败，原始输出末尾500字：\n{out[-500:]}",
+                encoding="utf-8"
+            )
+        except Exception:
+            pass
         return
     fail, new, skip_exist, skip_future = parsed
 
@@ -125,6 +134,17 @@ def main():
     # safe_print(f"⏰ 执行时间：{exec_time}")
     msg = build_message(fail, new, skip_exist, skip_future, exec_time, fail_analysis=fail_analysis)
     print(msg)
+
+    # 2. 调用 QQ 直接推送脚本（QClaw 未接管时备用）
+    # 该脚本会自动检测是否由 QClaw 调用；若由 QClaw cron 调用则直接退出，不重复推送
+    push_script = _SCRIPT_DIR / "fy4b_push_qq.py"
+    if push_script.exists():
+        subprocess.Popen(
+            [sys.executable, str(push_script)],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.PIPE,
+            cwd=str(_SCRIPT_DIR)
+        )
 
 if __name__ == "__main__":
     main()
