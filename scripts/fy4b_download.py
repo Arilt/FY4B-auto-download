@@ -54,7 +54,7 @@ _DOWNLOADER_CWD = DOWNLOADER.parent
 
 
 def parse_output(raw: str):
-    """从脚本输出中解析下载统计四元组 (成功, 已存在, 未来, 失败)。
+    """从脚本输出中解析下载统计四元组 (失败, 成功, 已存在, 未来)。
 
     脚本输出多批 [DONE] 行（当前批次 + 预下载下一批次），
     将所有批次数字累加得到最终汇总结果。
@@ -118,10 +118,10 @@ def main():
         capture_output=True, text=True, encoding='utf-8'
     ).stdout.strip()
     # safe_print("[FY4B] FY4B 云图下载报告")
+    # safe_print(f"❌ 失败: **{fail}**")
     # safe_print(f"✅ 成功: **{new}**")
     # safe_print(f"⏭️ 已存在: **{skip_exist}**")
     # safe_print(f"🔮 未就绪: **{skip_future}**")
-    # safe_print(f"❌ 失败: **{fail}**")
     # safe_print(f"⏰ 执行时间：{exec_time}")
     msg = build_message(fail, new, skip_exist, skip_future, exec_time, fail_analysis=fail_analysis)
     print(msg)

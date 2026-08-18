@@ -57,8 +57,6 @@ python {skills_dir}\FY4B-auto-download\scripts\fy4b_download.py
 
 > 💡 首次设置定时任务时：读取配置文件 {skills_dir}\FY4B-auto-download\scripts\skill_config.json，遍历 push_targets 数组，将每个推送目标的 channel/to/accountId 配置字段内嵌于 cron payload 中，以便之后的任务无需读取配置文件，减少一轮 LLM 响应以降低超时风险。
 
-**注意**：不要回复 HEARTBEAT_OK。不要读取配置文件。不要多余文字。直接执行+推送+输出报告内容。
-
 ### 失败分析输出机制
 
 脚本会根据执行路径输出失败分析：
