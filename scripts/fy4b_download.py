@@ -4,7 +4,7 @@ FY4B 云图下载 - 配置文件驱动入口
 所有关键配置从 skill_config.json 读取
 """
 
-import json, subprocess, sys, re, pathlib, io, os
+import json, subprocess, sys, re, pathlib, io, os, argparse
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
 
 # ============ 配置读取 ============
@@ -15,6 +15,7 @@ _config = json.loads(_config_path.read_text(encoding="utf-8"))
 # DOWNLOADER = _SCRIPT_DIR / _config["paths"]["downloader_script"]
 DOWNLOADER   = pathlib.Path(_config["paths"]["downloader_script"])
 _DOWNLOADER_CWD = DOWNLOADER.parent
+_DOWN_LOG = pathlib.Path(_config["paths"]["urls_txt_file"])
 
 # def safe_print(text: str):
 #     """兼容 Windows 控制台：emoji 替换为标签，UTF-8 bytes 写入 stdout buffer"""
@@ -95,12 +96,9 @@ def main():
     out = result.stdout + result.stderr
 
     # 调试：将原始输出写入文件（方便排查）
-    debug_file = _SCRIPT_DIR / "last_output.txt"
-    try:
-        # debug_file.write_text(out, encoding="utf-8")
-        debug_file.write_text(f"=== STDOUT ===\n{result.stdout}\n=== STDERR ===\n{result.stderr}", encoding="utf-8")
-    except Exception:
-        pass
+    # debug_file = _SCRIPT_DIR / "last_output.txt"
+    debug_file = _DOWN_LOG / "last_output.txt"
+    raw_log = f"=== STDOUT ===\n{result.stdout}\n=== STDERR ===\n{result.stderr}"
 
     # 解析结果（GBK 字节串正则）
     # parsed = parse_output_gbk(out)
@@ -112,8 +110,7 @@ def main():
         # 解析失败时也写入 last_output.txt，确保 fy4b_push_qq.py 能读取
         try:
             debug_file.write_text(
-                f"=== STDOUT ===\n{result.stdout}\n=== STDERR ===\n{result.stderr}\n"
-                f"=== PARSE_FAIL ===\n⚠️ 解析失败，原始输出末尾500字：\n{out[-500:]}",
+                f"{raw_log}\n=== PARSE_FAIL ===\n⚠️ 解析失败，原始输出末尾500字：\n{out[-500:]}",
                 encoding="utf-8"
             )
         except Exception:
@@ -135,16 +132,44 @@ def main():
     msg = build_message(fail, new, skip_exist, skip_future, exec_time, fail_analysis=fail_analysis)
     print(msg)
 
+    # 原始日志 → last_output.txt（排查用）
+    # Markdown 报告 → last_report.txt（推送用，简洁）
+    try:
+        debug_file.write_text(raw_log, encoding="utf-8")
+    except Exception:
+        pass
+    try:
+        (_SCRIPT_DIR / "last_report.txt").write_text(msg, encoding="utf-8")
+    except Exception:
+        pass
+
     # 2. 调用 QQ 直接推送脚本（QClaw 未接管时备用）
-    # 该脚本会自动检测是否由 QClaw 调用；若由 QClaw cron 调用则直接退出，不重复推送
+    # 同步等待推送完成（异步 Popen 在父进程退出后会被进程树清理，导致推送丢失）
+    # 由 手动或系统自动任务 执行时请加 --qq-push（避免与 QClaw 自行推送重复）
     push_script = _SCRIPT_DIR / "fy4b_push_qq.py"
-    if push_script.exists():
+    if push_script.exists() and args.qq_push:
         subprocess.Popen(
             [sys.executable, str(push_script)],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.PIPE,
             cwd=str(_SCRIPT_DIR)
         )
+        # try:
+        #     print("[QQPush] 推送报告到 QQ ...")
+        #     r = subprocess.run(
+        #         [sys.executable, str(push_script)],
+        #         timeout=60,
+        #         cwd=str(_SCRIPT_DIR)
+        #     )
+        #     print(f"[QQPush] 推送脚本退出码: {r.returncode}")
+        # except subprocess.TimeoutExpired:
+        #     print("[QQPush] 推送超时(60s)", file=sys.stderr)
+        # except Exception as e:
+        #     print(f"[QQPush] 推送脚本执行失败: {e}", file=sys.stderr)
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="FY4B 云图下载（配置文件驱动）")
+    parser.add_argument("--qq-push", action="store_true",
+                        help="直接推送（由 手动或系统自动任务 调用时使用，避免 QClaw 执行时重复推送）")
+    args = parser.parse_args()
     main()

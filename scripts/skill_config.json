@@ -6,8 +6,8 @@
   "paths": {
     "staging_dir": "D:\\云图\\FY4B_40H",
     "target_dir": "D:\\云图\\FY4B",
-    "urls_txt_file": "D:\\云图\\FY4B\\待导入日期",
-    "Excel_file": "D:\\云图\\FY4B\\待导入日期\\卫星云图导入时间控制.xlsx",
+    "urls_txt_file": "D:\\云图\\FY4B_40H\\待导入日期",
+    "Excel_file": "D:\\云图\\FY4B_40H\\待导入日期\\卫星云图导入时间控制.xlsx",
     "url_template_file": "templates/url_template.md",
     "idm_program": "D:\\Program Files (x86)\\Internet Download Manager\\IDMan.exe",
     "downloader_script": "fy4b_direct_download.py"
@@ -45,17 +45,22 @@
   "push_targets": [
     {
       "channel": "qqbot",
-      "to": "qqbot:c2c:<your_qq_openid>",
-      "accountId": "<qqbot_AppID>",
+      "to": "qqbot:c2c:<YOUR_QQ_OPENID>",
+      "accountId": "<YOUR_QQBOT_APPID>",
       "label": "QQ"
     },
     {
       "channel": "openclaw-weixin",
-      "to": "<chat_id>@im.wechat",
-      "accountId": "<openclaw_weixin_accountId>",
+      "to": "<YOUR_WECHAT_ID>@im.wechat",
+      "accountId": "<YOUR_OPENCLAW_WEIXIN_ACCOUNTID>",
       "label": "微信"
     }
   ],
+
+  "qqbot_credentials": {
+    "appid": "<YOUR_QQBOT_APPID>",
+    "appsecret": "<YOUR_QQBOT_APPSECRET>"
+  },
 
   "push_message_template": "📡 **FY4B 云图下载报告**\n\n- ❌ 失败: **{fail}**\n- ✅ 成功: **{new}**\n- ⏭️ 已存在: **{skip_exist}**\n- 🔮 未来图片: **{skip_future}**\n\n⏰ 执行时间：{exec_time}",
 

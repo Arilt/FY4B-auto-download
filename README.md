@@ -62,7 +62,7 @@ pip install pywin32
 | :--- | :--- | :--- |
 | `staging_dir` | 下载时的暂存文件夹，下载完成后会自动移至目标目录 | `D:\云图\FY4B_40H` |
 | `target_dir` | 最终保存图片的文件夹 | `D:\云图\FY4B` |
-| `urls_txt_file` | 存放 txt 链接文件的目录 | `D:\云图\FY4B\待导入日期` |
+| `urls_txt_file` | 存放 txt 链接文件的目录 | `D:\云图\FY4B_40H\待导入日期` |
 | `Excel_file` | 包含链接生成公式的 Excel 文件路径 | `./卫星云图导入时间控制.xlsx` |
 | `url_template_file` | URL 模板文件路径 (相对路径) | `templates/url_template.md` |
 | `idm_program` | IDM 可执行文件的绝对路径 | `C:\Program Files\...\IDMan.exe` |
@@ -215,7 +215,7 @@ https://image.nmc.cn/product/YYYY/MM/DD/WXBL/SEVP_NSMC_WXBL_FY4B_ETCC_ACHN_LNO_P
   2. 检查系统时间是否准确，因为链接生成依赖于当前时间计算。
 
 - **OpenClaw 推送失败**：
-  1. 检查 [last_output.txt](./scripts/last_output.txt) 查看原始脚本输出。
+  1. 检查 [last_output.txt]({paths.urls_txt_file}/last_output.txt) 查看原始脚本输出。
   2. 确认 `push_targets` 中的 `accountId` 和 `to` 字段填写正确。
   3. 目前 微信ClawBot 会话24小时有效，超过24小时将无法收到主动推送，因此请24小时内主动向 微信ClawBot 发送1条消息进行保活。
   

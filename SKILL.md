@@ -57,10 +57,13 @@ python {skills_dir}\FY4B-auto-download\scripts\fy4b_download.py
 
 > 💡 首次设置定时任务时：读取配置文件 {skills_dir}\FY4B-auto-download\scripts\skill_config.json，遍历 push_targets 数组，将每个推送目标的 channel/to/accountId 配置字段内嵌于 cron payload 中，以便之后的任务无需读取配置文件，减少一轮 LLM 响应以降低超时风险。
 
-> 💡 **QQ 直接推送备用方案**：若 QClaw cron 因积分耗尽无法推送，`fy4b_download.py` 会自动调用 `fy4b_push_qq.py` 直接通过 QQ 开放平台 API 推送。
-> - Token 获取：`POST https://api.bot.qq.com/app/getAppAccessToken`，body: `{"appId":"YOUR_APP_ID","clientSecret":"YOUR_APP_SECRET}"}`
+> 💡 **QQ 直接推送备用方案**：`fy4b_download.py` 运行完会**同步等待**调用 `fy4b_push_qq.py` 直接通过 QQ 开放平台 API 推送（不再异步 Popen，避免父进程退出后子进程被进程树清理导致推送丢失）。
+> - **QClaw cron 执行时请加 `--skip-push` 参数**（`python fy4b_download.py --skip-push`），由 QClaw 自行推送，避免重复
+> - Token 获取：`POST https://api.bot.qq.com/app/getAppAccessToken`，body: `{"appId":"YOUR_APP_ID","clientSecret":"YOUR_APP_SECRET}"}`（凭证已存 `skill_config.json` 的 `qqbot_credentials`）
 > - 推送接口：`POST https://api.bot.qq.com/v2/users/{user_openid}/messages`，Header: `Authorization: QQBot <token>`，body: `{"msg_type":0,"content":"<消息内容>"}`
-> - 当前 token 写入 `scripts/qqbot_token.txt`（有效期约 7200 秒，过期需刷新）
+> - Token 有效期约 7200 秒；**401 时脚本自动调 `refresh_qqbot_access_token()` 刷新并重试**，无需手动干预
+> - 报告来源：`fy4b_download.py` 将 Markdown 报告写入 `scripts/last_report.txt`，推送脚本优先读取该文件
+> - 排查：推送脚本每次执行都会追加写入 `scripts/push_log.txt`，异步/终端环境下推送失败可查此日志
 
 ### 失败分析输出机制
 
@@ -176,5 +179,5 @@ download_links() 失败记录
 
 ## 调试
 
-- 脚本运行后会在 `scripts/last_output.txt` 写入原始输出，方便排查解析失败问题
+- 脚本运行后会在 `scripts/skill_config.json` 中的 `{paths.urls_txt_file}/last_output.txt` 写入原始输出，方便排查解析失败问题
 - 直接运行 `python fy4b_direct_download.py` 可查看完整日志
