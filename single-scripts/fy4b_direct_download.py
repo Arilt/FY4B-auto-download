@@ -263,7 +263,7 @@ def main():
             # Excel 不存在 → 用模板生成新 txt
             log("[GEN] Excel 不存在，用模板生成新 txt")
             try:
-                new_txt_path = create_download_links.generate_and_save_txt()
+                new_txt_path = create_download_links.generate_and_save_txt(start_time=txt_dt)
                 log(f"[OK] 生成文件: {new_txt_path.name}")
             except Exception as e:
                 log(f"[FAIL] 生成 txt 失败: {e}")

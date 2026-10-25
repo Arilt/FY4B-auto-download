@@ -52,6 +52,7 @@ OFFSET_HOURS          = C["txt_regular"]["时间偏移小时"]
 TOTAL_HOURS           = C["txt_regular"]["总时长小时"]
 INTERVAL_MINUTES      = C["txt_regular"]["链接间隔分钟"]
 EXPIRY_OFFSET_MINUTES = C["txt_regular"]["截止时间偏移分钟"]
+TIMEZONE_OFFSET_HOURS = C["txt_regular"]["时区偏移小时"]
 
 # Excel 结构
 EXCEL_FILE   = _resolve_path(C["paths"]["Excel_file"])
@@ -207,10 +208,10 @@ def format_link(template: str, dt: datetime) -> str:
 
 # ===================== 链接生成 =====================
 def generate_links(start_time: datetime = None) -> list[str]:
-    """生成下载链接列表（默认从当前时间-30h整点开始）。"""
+    """生成下载链接列表（默认从当前时间-25h整点开始-时区偏移）。"""
     template = parse_template()
     if start_time is None:
-        start_time = (datetime.now() - timedelta(hours=OFFSET_HOURS)).replace(
+        start_time = (datetime.now() - timedelta(hours=OFFSET_HOURS + TIMEZONE_OFFSET_HOURS)).replace(
             minute=0, second=0, microsecond=0
         )
     return [format_link(template, start_time + timedelta(minutes=i * INTERVAL_MINUTES))
@@ -218,19 +219,21 @@ def generate_links(start_time: datetime = None) -> list[str]:
 
 
 def generate_txt_filename(links: list[str]) -> str:
-    """根据最后一个链接的时间生成 txt 文件名（最后链接时间 + 22分钟 = 截止时间）。"""
+    """根据最后一个链接的时间生成 txt 文件名（最后链接时间 + 22分钟 + 时区偏移（东八区）= 截止时间）。"""
     last_link = links[-1]
     match = re.search(r"(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})00000\.JPG$", last_link, re.IGNORECASE)
     if not match:
         raise ValueError(f"无法从链接中提取时间: {last_link}")
     y, mo, d, h, mi = match.groups()
     last_dt = datetime(int(y), int(mo), int(d), int(h), int(mi))
-    expiry_dt = last_dt + timedelta(minutes=EXPIRY_OFFSET_MINUTES)
+    expiry_dt = last_dt + timedelta(minutes=(EXPIRY_OFFSET_MINUTES + TIMEZONE_OFFSET_HOURS*60))  #  时区偏移
     return f"{TXT_PREFIX}{expiry_dt.strftime(TXT_DATEFMT)}.txt"
 
 
 def generate_and_save_txt(start_time: datetime = None) -> Path:
     """生成链接并保存到 txt 文件。"""
+    if start_time is not None:
+        start_time = start_time - timedelta(minutes=EXPIRY_OFFSET_MINUTES - INTERVAL_MINUTES + TIMEZONE_OFFSET_HOURS*60)
     links = generate_links(start_time)
     filename = generate_txt_filename(links)
     txt_path = TXT_DIR / filename
